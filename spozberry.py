@@ -10,6 +10,10 @@ if __name__ == '__main__':
   MyMAC = "9c:b2:b2:90:ef:1e"
   phoneMAC = MyMAC
 
+  client = MPDClient()
+  client.timeout = 10
+  client.connect("localhost", 6600)
+
   while True:
     time.sleep(5)
     # TODO: remove sudo from the following command:
@@ -18,6 +22,5 @@ if __name__ == '__main__':
     p_status = p.wait()
     if output:
       print("It's on the network!")
-      client = MPDClient()
     else:
       print("It's not on the network")
