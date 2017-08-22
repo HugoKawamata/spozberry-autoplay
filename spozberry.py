@@ -1,5 +1,6 @@
 import subprocess
 import time
+from mpd import MPDClient
 
 # My phone's mac address = 9c:b2:b2:90:ef:1e
 
@@ -17,5 +18,6 @@ if __name__ == '__main__':
     p_status = p.wait()
     if output:
       print("It's on the network!")
+      client = MPDClient()
     else:
       print("It's not on the network")
