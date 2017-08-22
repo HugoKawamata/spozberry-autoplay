@@ -1,2 +1,1 @@
-pkg-resources==0.0.0
 python-mpd2==0.5.5
