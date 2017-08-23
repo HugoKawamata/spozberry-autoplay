@@ -37,7 +37,7 @@ if __name__ == '__main__':
   while True:
     if playlistList == []:
       break
-    time.sleep(10)
+    time.sleep(5)
     p = subprocess.Popen("sudo arp-scan -l | grep " + phoneMAC, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
@@ -59,6 +59,6 @@ if __name__ == '__main__':
     else:
       print("It's not on the network")
       failedTicks += 1
-      if failedTicks > 7:
-        phoneIsConnected = False
+      if failedTicks > 4:
         client.clear()
+        phoneIsConnected = False
