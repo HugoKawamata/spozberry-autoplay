@@ -1,11 +1,26 @@
 import subprocess
 import time
+import random
 from mpd import MPDClient
+from threading import Thread
 
 # My phone's mac address = 9c:b2:b2:90:ef:1e
 
+def play_random_playlist(playlistList, lastPlaylistName = None):
+  playlistName = lastPlaylistName
+  while playlistName == lastPlaylistName:
+    playlistNum = random.randint(0, len(playlistList) - 1)
+    playlistName = playlistList[playlistNum]["playlist"]
+  print("Playing playlist " + playlistName)
+  client.load(playlistName) # Load a random playlist
+  client.play(0)
+  return playlistName
+
 
 if __name__ == '__main__':
+
+  phoneIsConnected = False
+  failedTicks = 0
 
   MyMAC = "9c:b2:b2:90:ef:1e"
   phoneMAC = MyMAC
@@ -14,27 +29,36 @@ if __name__ == '__main__':
   client.timeout = 10
   client.connect("localhost", 6600)
 
-  # Make a list of all the playlists with $ at the start
+  unfilteredPlaylists = client.listplaylists()
+  playlistList = list(filter(lambda plDict: plDict["playlist"][0] == "$", unfilteredPlaylists))
 
-  # Randomly order them
-
+  currentPlaylist = ""
 
   while True:
-    phoneIsConnected = False
-    time.sleep(5)
-    # TODO: remove sudo from the following command:
+    if playlistList == []:
+      break
+    time.sleep(10)
     p = subprocess.Popen("sudo arp-scan -l | grep " + phoneMAC, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
     if output:
-      print(client.listplaylists())
+      failedTicks = 0
       print("It's on the network!")
-      if !phoneIsConnected: # The phone just connected
+
+      if phoneIsConnected == False: # The phone just connected
         phoneIsConnected = True
-        client.load() # Load the first playlist in the queue
+        currentPlaylist = play_random_playlist(playlistList)
       else:
+        if len(client.playlistinfo()) == 0:
+          print(client.playlist())
+          play_random_playlist(playlistList, currentPlaylist)
+
         # Check if playlist is almost run out
         # Randomly pick another playlist with a different name
         # Load that playlist
     else:
       print("It's not on the network")
+      failedTicks += 1
+      if failedTicks > 7:
+        phoneIsConnected = False
+        client.clear()
