@@ -60,7 +60,7 @@ def wait_for_input(L, client):
             else:
               break
 
-          if i < len(client.playlistinfo()):
+          if i < len(playlistInfo):
             client.play(i)
           else:
             client.stop()
@@ -119,8 +119,8 @@ if __name__ == '__main__':
         phoneIsConnected = True
         play_random_playlist(playlistList)
       else:
-        print(client.status()["state"])
-        if client.status()["state"] == "stop":
+        status = client.status()
+        if "state" in status and status["state"] == "stop":
           play_random_playlist(playlistList)
 
 
