@@ -95,10 +95,7 @@ if __name__ == '__main__':
   client.connect("localhost", 6600)
 
   unfilteredPlaylists = client.listplaylists()
-  if len(sys.argv) > 1 and sys.argv[1] == "-a":
-    playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
-  else:
-    playlistList = list(filter(lambda plDict: plDict["playlist"][0] == "$", unfilteredPlaylists))
+  playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
 
 
   L = []
