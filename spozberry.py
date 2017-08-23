@@ -9,6 +9,7 @@ from threading import Thread
 
 def randomise_by_album(client):
   currentPlaylist = client.playlistinfo()
+  print(currentPlaylist)
   shuffledPlaylist = []
   i = 0
   #while client.playlistinfo()[i]["album"]
@@ -30,7 +31,7 @@ def randomise_by_album(client):
   
 
 
-def wait_for_input(L, client):
+def wait_for_input(L, client, playlistList):
   paused = False
 
   while(1):
@@ -92,7 +93,7 @@ if __name__ == '__main__':
   phoneMAC = MyMAC
 
   client = MPDClient()
-  client.timeout = 20
+  client.timeout = None
   client.connect("localhost", 6600)
 
   unfilteredPlaylists = client.listplaylists()
@@ -100,7 +101,7 @@ if __name__ == '__main__':
 
 
   L = []
-  inputThread = Thread(target = wait_for_input, args = (L, client))
+  inputThread = Thread(target = wait_for_input, args = (L, client, playlistList))
   inputThread.start()
 
   while True:
