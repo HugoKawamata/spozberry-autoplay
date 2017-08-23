@@ -1,6 +1,7 @@
 import subprocess
 import time
 import random
+import sys
 from mpd import MPDClient
 from threading import Thread
 
@@ -94,7 +95,11 @@ if __name__ == '__main__':
   client.connect("localhost", 6600)
 
   unfilteredPlaylists = client.listplaylists()
-  playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
+  if len(sys.argv) > 1 and sys.argv[1] == "-a":
+    playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
+  else:
+    playlistList = list(filter(lambda plDict: plDict["playlist"][0] == "$", unfilteredPlaylists))
+
 
   L = []
   inputThread = Thread(target = wait_for_input, args = (L, client))
