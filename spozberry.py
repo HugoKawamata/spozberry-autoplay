@@ -36,6 +36,7 @@ def play_random_playlist(playlistList, lastPlaylistName = None):
     playlistNum = random.randint(0, len(playlistList) - 1)
     playlistName = playlistList[playlistNum]["playlist"]
   print("Playing playlist " + playlistName)
+  client.clear()
   client.load(playlistName) # Load a random playlist
   client.play(0)
   return playlistName
@@ -86,6 +87,6 @@ if __name__ == '__main__':
     else:
       print("It's not on the network")
       failedTicks += 1
-      if failedTicks > 6:
+      if failedTicks > 5:
         client.clear()
         phoneIsConnected = False
