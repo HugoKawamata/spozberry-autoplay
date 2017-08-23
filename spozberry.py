@@ -118,7 +118,6 @@ if __name__ == '__main__':
         phoneIsConnected = True
         play_random_playlist(playlistList)
       else:
-        print(client.status()["state"])
         if client.status()["state"] == "stop":
           play_random_playlist(playlistList)
 
