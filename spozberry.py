@@ -51,10 +51,11 @@ def wait_for_input(L, client):
             client.pause()
         if "a" in L[0]: # A for skip to next album
           currentAlbum = client.currentsong()["album"]
+          playlistInfo = client.playlistinfo()
           print(currentAlbum)
           i = int(client.status()["song"])
           while i < len(client.playlistinfo()): 
-            if client.playlistinfo()[i]["album"] == currentAlbum:
+            if playlistInfo[i]["album"] == currentAlbum:
               i += 1
             else:
               break
