@@ -2,17 +2,24 @@ import subprocess
 import time
 import random
 import sys
-from mpd import MPDClient
+from mpd import MPDClient, ProtocolError
 from threading import Thread
+from termios import tcflush, TCIOFLUSH
+
 
 # My phone's mac address = 9c:b2:b2:90:ef:1e
 
 def randomise_by_album(client):
   currentPlaylist = client.playlistinfo()
-  print(currentPlaylist)
+  while(len(currentPlaylist) == 0):
+    print("Oops, got an empty playlistinfo()")
+    time.sleep(4)
+    currentPlaylist = client.playlistinfo()
+  client.clear()
   shuffledPlaylist = []
   i = 0
   #while client.playlistinfo()[i]["album"]
+  print("currentPlaylist should contain songs, owo what's this? " + str(currentPlaylist[0]))
   while i < len(currentPlaylist):
     album = []
     album.append(currentPlaylist[i])
@@ -23,11 +30,15 @@ def randomise_by_album(client):
 
     shuffledPlaylist.append(album)
 
-  client.clear()
   random.shuffle(shuffledPlaylist)
   for album in shuffledPlaylist:
     for song in album:
-      client.add(song["file"])
+      try:
+        print(song["file"] + " " + song["title"])
+        client.add(song["file"])
+      except ProtocolError:
+        print("uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+        
   
 
 
@@ -35,6 +46,7 @@ def wait_for_input(L, client, playlistList):
   paused = False
 
   while(1):
+    tcflush(sys.stdin, TCIOFLUSH) # Flush all the crap entered while it wasn't listening.
     print("listening...")
     L.append(input())
 
@@ -42,15 +54,16 @@ def wait_for_input(L, client, playlistList):
       if " " in L[0]: # Reload Playlist
         client.clear()
         play_random_playlist(playlistList)
-      else:
-        if "n" in L[0]: # N for next
-          client.next()
-        if "p" in L[0]: # P for pause/play
-          if paused == True:
-            client.play()
-          else:
-            client.pause()
-        if "a" in L[0]: # A for skip to next album
+      elif "n" in L[0]: # N for next
+        client.next()
+      elif "p" in L[0]: # P for pause/play
+        if paused == True:
+          client.play()
+        else:
+          client.pause()
+      elif "a" in L[0]: # A for skip to next album
+        currentSong = client.currentsong()
+        if "album" in currentSong:
           currentAlbum = client.currentsong()["album"]
           playlistInfo = client.playlistinfo()
           print(currentAlbum)
@@ -93,7 +106,7 @@ if __name__ == '__main__':
   phoneMAC = MyMAC
 
   client = MPDClient()
-  client.timeout = None
+  client.timeout = 100
   client.connect("localhost", 6600)
 
   unfilteredPlaylists = client.listplaylists()
