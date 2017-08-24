@@ -33,14 +33,41 @@ def randomise_by_album(client):
   random.shuffle(shuffledPlaylist)
   for album in shuffledPlaylist:
     for song in album:
-      try:
-        print(song["file"] + " " + song["title"])
-        client.add(song["file"])
-      except ProtocolError:
-        print("uhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+      #print(song["file"] + " " + song["title"])
+      client.add(song["file"])
         
-  
+def skip_album(client):
+  currentSong = client.currentsong()
+  if "album" in currentSong:
+    currentAlbum = client.currentsong()["album"]
+    playlistInfo = client.playlistinfo()
+    i = int(client.status()["song"])
+    while i < len(client.playlistinfo()): 
+      if playlistInfo[i]["album"] == currentAlbum:
+        i += 1
+      else:
+        break
 
+    if i < len(playlistInfo):
+      client.play(i)
+    else:
+      client.stop()
+
+def prev_album(client):
+  currentSong = client.currentsong()
+  if "album" in currentSong:
+    currentAlbum = client.currentsong()["album"]
+    playlistInfo = client.playlistinfo()
+    i = int(client.status()["song"])
+    if i > 0 and playlistInfo[i-1]["album"] != currentAlbum: # At the first song of album, want to go to prev album
+      currentAlbum = playlistInfo[i-1]["album"]
+      i -= 1
+    while i > 0:
+      if playlistInfo[i]["album"] == currentAlbum:
+        i -= 1
+      else:
+        break
+    client.play(i)
 
 def wait_for_input(L, client, playlistList):
   paused = False
@@ -62,26 +89,13 @@ def wait_for_input(L, client, playlistList):
           client.play()
         else:
           client.pause()
+      elif "ab" in L[0]: # AB for album back
+        prev_album(client)
       elif "a" in L[0]: # A for skip to next album
-        currentSong = client.currentsong()
-        if "album" in currentSong:
-          currentAlbum = client.currentsong()["album"]
-          playlistInfo = client.playlistinfo()
-          print(currentAlbum)
-          i = int(client.status()["song"])
-          while i < len(client.playlistinfo()): 
-            if playlistInfo[i]["album"] == currentAlbum:
-              i += 1
-            else:
-              break
+        skip_album(client)
+      elif "b" in L[0]: # B for back
+        client.previous()
 
-          if i < len(playlistInfo):
-            client.play(i)
-          else:
-            client.stop()
-
-      while L != []: # Make sure L is always empty at the start of a listen
-        L.remove(L[0])
     clientLock.release()
 
 
