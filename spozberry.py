@@ -62,12 +62,19 @@ def prev_album(client):
     if i > 0 and playlistInfo[i-1]["album"] != currentAlbum: # At the first song of album, want to go to prev album
       currentAlbum = playlistInfo[i-1]["album"]
       i -= 1
-    while i > 0:
-      if playlistInfo[i]["album"] == currentAlbum:
-        i -= 1
-      else:
-        break
-    client.play(i+1)
+      while i > 0:
+        if playlistInfo[i]["album"] == currentAlbum:
+          i -= 1
+        else:
+          break
+      client.play(i)
+    else:
+      while i > 0:
+        if playlistInfo[i]["album"] == currentAlbum:
+          i -= 1
+        else:
+          break
+      client.play(i+1)
 
 def wait_for_input(L, client, playlistList):
   paused = False
