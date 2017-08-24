@@ -147,11 +147,11 @@ if __name__ == '__main__':
     if playlistList == []:
       break
     time.sleep(5)
-    clientLock.acquire()
     p = subprocess.Popen("sudo arp-scan -l | grep " + phoneMAC, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
     
+    clientLock.acquire()
     if output: # If the phone is connected
       failedTicks = 0
       print("It's on the network!")
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     else:
       print("It's not on the network")
       failedTicks += 1
-      if failedTicks > 5:
+      if failedTicks > 7:
         client.clear()
         phoneIsConnected = False
     clientLock.release()
