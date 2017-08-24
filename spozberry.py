@@ -89,7 +89,7 @@ def wait_for_input(L, client, playlistList):
           client.play()
         else:
           client.pause()
-      elif "ab" in L[0]: # AB for album back
+      elif "z" in L[0]: # Z because I'm running out of letters
         prev_album(client)
       elif "a" in L[0]: # A for skip to next album
         skip_album(client)
