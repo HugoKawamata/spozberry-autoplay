@@ -67,7 +67,7 @@ def prev_album(client):
         i -= 1
       else:
         break
-    client.play(i)
+    client.play(i+1)
 
 def wait_for_input(L, client, playlistList):
   paused = False
