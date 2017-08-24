@@ -3,7 +3,7 @@ import time
 import random
 import sys
 from mpd import MPDClient, ProtocolError
-from threading import Thread
+from threading import Thread, Lock
 from termios import tcflush, TCIOFLUSH
 
 
@@ -50,6 +50,7 @@ def wait_for_input(L, client, playlistList):
     print("listening...")
     L.append(input())
 
+    clientLock.acquire()
     if len(L) > 0:
       if " " in L[0]: # Reload Playlist
         client.clear()
@@ -81,6 +82,7 @@ def wait_for_input(L, client, playlistList):
 
       while L != []: # Make sure L is always empty at the start of a listen
         L.remove(L[0])
+    clientLock.release()
 
 
 def play_random_playlist(playlistList):
@@ -112,6 +114,7 @@ if __name__ == '__main__':
   unfilteredPlaylists = client.listplaylists()
   playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
 
+  clientLock = Lock()
 
   L = []
   inputThread = Thread(target = wait_for_input, args = (L, client, playlistList))
@@ -121,6 +124,7 @@ if __name__ == '__main__':
     if playlistList == []:
       break
     time.sleep(5)
+    clientLock.acquire()
     p = subprocess.Popen("sudo arp-scan -l | grep " + phoneMAC, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
@@ -144,3 +148,4 @@ if __name__ == '__main__':
       if failedTicks > 5:
         client.clear()
         phoneIsConnected = False
+    clientLock.release()
