@@ -99,6 +99,8 @@ def wait_for_input(L, client, playlistList):
       elif "b" in L[0]: # B for back
         if int(client.status()["song"]) != 0:
           client.previous()
+        else:
+          client.play(0)
 
     while L != []: # Make sure L is always empty at the start of a listen
       L.remove(L[0])
