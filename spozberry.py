@@ -96,7 +96,10 @@ def wait_for_input(L, client, playlistList):
       elif "b" in L[0]: # B for back
         client.previous()
 
+    while L != []: # Make sure L is always empty at the start of a listen
+      L.remove(L[0])
     clientLock.release()
+
 
 
 def play_random_playlist(playlistList):
