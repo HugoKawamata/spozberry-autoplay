@@ -166,7 +166,8 @@ if __name__ == '__main__':
     else:
       print("It's not on the network")
       failedTicks += 1
-      if failedTicks > 7 and phoneIsConnected:
+      status = client.status()
+      if failedTicks > 7 and phoneIsConnected and "state" in status and status["state"] == "play":
         client.clear()
         phoneIsConnected = False
     clientLock.release()
