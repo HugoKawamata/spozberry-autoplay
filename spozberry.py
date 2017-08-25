@@ -18,8 +18,6 @@ def randomise_by_album(client):
   client.clear()
   shuffledPlaylist = []
   i = 0
-  #while client.playlistinfo()[i]["album"]
-  print("currentPlaylist should contain songs, owo what's this? " + str(currentPlaylist[0]))
   while i < len(currentPlaylist):
     album = []
     album.append(currentPlaylist[i])
@@ -131,7 +129,7 @@ if __name__ == '__main__':
   phoneMAC = MyMAC
 
   client = MPDClient()
-  client.timeout = 100
+  client.timeout = None
   client.connect("localhost", 6600)
 
   unfilteredPlaylists = client.listplaylists()
@@ -169,7 +167,6 @@ if __name__ == '__main__':
       print("It's not on the network")
       failedTicks += 1
       if failedTicks > 7 and phoneIsConnected:
-        client.playlistinfo()
         client.clear()
         phoneIsConnected = False
     clientLock.release()
