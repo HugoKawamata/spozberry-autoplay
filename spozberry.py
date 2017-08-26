@@ -5,6 +5,7 @@ import sys
 from mpd import MPDClient, ProtocolError
 from threading import Thread, Lock
 from termios import tcflush, TCIOFLUSH
+import datetime
 
 
 # My phone's mac address = 9c:b2:b2:90:ef:1e
@@ -70,6 +71,26 @@ def prev_album(client):
           break
       client.play(i+1)
 
+def sleep_mode(client, stringOfHours):
+  try: 
+    sleepHours = float(stringOfHours)
+    # Playing 15 minutes of music to aid sleep
+    rockabyeTime = datetime.datetime.now() + datetime.timedelta(minutes=15)
+    print("entering rockabye mode for 15 minutes")
+    while (datetime.datetime.now() < rockabyeTime):
+      client.status() # Ping the client to prevent timeouts
+      time.sleep(50) # Default mpd timeout is 60 seconds
+    # Going into sleep mode for reals
+    wakeup = datetime.datetime.now() + datetime.timedelta(hours=sleepHours)
+    print("sleeping for " + str(sleepHours) + " hours")
+    client.pause()
+    while (datetime.datetime.now() < wakeup):
+      client.status();
+      time.sleep(50) # Default mpd timeout is 60 seconds
+    client.play()
+  except ValueError:
+    print("not a number of hours")
+
 def wait_for_input(L, client, playlistList):
   paused = False
 
@@ -80,7 +101,9 @@ def wait_for_input(L, client, playlistList):
 
     clientLock.acquire()
     if len(L) > 0:
-      if " " in L[0]: # Reload Playlist
+      if "zzz" in L[0] and len(L[0].split()) > 1:
+        sleep_mode(client, L[0].split()[1])
+      elif "r" in L[0]: # Reload Playlist
         client.clear()
         play_random_playlist(playlistList)
       elif "n" in L[0]: # N for next
@@ -90,7 +113,7 @@ def wait_for_input(L, client, playlistList):
           client.play()
         else:
           client.pause()
-      elif "z" in L[0]: # Z because I'm running out of letters
+      elif "l" in L[0]: # Last album
         prev_album(client)
       elif "a" in L[0]: # A for skip to next album
         skip_album(client)
