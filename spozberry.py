@@ -96,12 +96,12 @@ def wait_for_input(L, client, playlistList):
 
   while(1):
     tcflush(sys.stdin, TCIOFLUSH) # Flush all the crap entered while it wasn't listening.
-    print("listening...")
-    L.append(input())
+    print("listening...") # We're listening
+    L.append(input()) # Get an input
 
-    clientLock.acquire()
+    clientLock.acquire() # "Hold my beer, ConnectionCheckingThread"
     if len(L) > 0:
-      if "zzz" in L[0] and len(L[0].split()) > 1:
+      if "zzz" in L[0] and len(L[0].split()) > 1: # Sleep mode
         sleep_mode(client, L[0].split()[1])
       elif "r" in L[0]: # Reload Playlist
         client.clear()
@@ -123,22 +123,22 @@ def wait_for_input(L, client, playlistList):
         else:
           client.play(0)
 
-    while L != []: # Make sure L is always empty at the start of a listen
+    while L != []: # Empty L so that new commands can be given
       L.remove(L[0])
     clientLock.release()
 
-
-
 def play_random_playlist(playlistList):
   playlistNum = random.randint(0, len(playlistList) - 1)
-  playlistName = playlistList[playlistNum]["playlist"]
+  playlistName = playlistList[playlistNum]["playlist"] 
+  # Playlistlist is a list of dicts representing playlists, the name of a 
+  # playlist is under key "playlist"
   print("Playing playlist " + playlistName)
   client.clear()
-  if playlistName[1] == "@":
+  if playlistName[1] == "@": # @ indicates an album collection
     client.load(playlistName)
     randomise_by_album(client) # Shuffle but keep albums together
   else:
-    client.load(playlistName) # Load a random playlist
+    client.load(playlistName) # Load a random playlist, plays in order
   client.play(0)
   return playlistName
 
@@ -152,22 +152,26 @@ if __name__ == '__main__':
   phoneMAC = MyMAC
 
   client = MPDClient()
-  client.timeout = None
-  client.connect("localhost", 6600)
+  client.timeout = None # This doesn't stop the 60 second default mpd timeout.
+  client.connect("localhost", 6600) # Connect to mopidy
 
   unfilteredPlaylists = client.listplaylists()
+  # Only get playlists with second character "@" (yes this is fucked)
   playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
 
   clientLock = Lock()
 
   L = []
   inputThread = Thread(target = wait_for_input, args = (L, client, playlistList))
+  # Begin the input checking loop
   inputThread.start()
 
+  # Begin the connection checking loop
   while True:
     if playlistList == []:
       break
     time.sleep(5)
+    # Check whether the specified MAC address is on the network (thanks stack overflow)
     p = subprocess.Popen("sudo arp-scan -l | grep " + phoneMAC, stdout=subprocess.PIPE, shell=True)
     (output, err) = p.communicate()
     p_status = p.wait()
@@ -180,17 +184,20 @@ if __name__ == '__main__':
       if phoneIsConnected == False: # The phone just connected
         phoneIsConnected = True
         play_random_playlist(playlistList)
-      else:
+      else: # The phone was already connected
         status = client.status()
+        # Play a new playlist if the last one finished.
         if "state" in status and status["state"] == "stop":
           play_random_playlist(playlistList)
 
 
-    else:
+    else: # The phone is not connected
       print("It's not on the network")
       failedTicks += 1
       status = client.status()
+      # If we got more than 7 failed pings, and the music is playing
+      # (don't disconnect if paused, someone might want to come back to that spot in the playlist)
       if failedTicks > 7 and phoneIsConnected and "state" in status and status["state"] == "play":
-        client.clear()
-        phoneIsConnected = False
+        client.clear() # Empty playlist
+        phoneIsConnected = False # Allow phone to reconnect if it is found again
     clientLock.release()
