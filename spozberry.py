@@ -98,33 +98,44 @@ def sleep_mode(client, wakeUpTime, stringOfRockabye):
 
 def wait_for_input(L, client, playlistList):
   paused = False
+  playlistNameList = [playlist["playlist"] for playlist in playlistList]
 
   while(1):
     tcflush(sys.stdin, TCIOFLUSH) # Flush all the crap entered while it wasn't listening.
-    print("listening...") # We're listening
+    print("Waiting for input: ") # We're listening
     L.append(input()) # Get an input
 
     clientLock.acquire() # "Hold my beer, ConnectionCheckingThread"
     if len(L) > 0:
-      if "zzz" in L[0] and len(L[0].split()) > 1: # Sleep mode
+      if "$" in L[0]:
+        if L[0] in playlistNameList:
+          play_specific_playlist(playlistList, L[0])
+
+      elif "zzz" in L[0] and len(L[0].split()) > 1: # Sleep mode
         if len(L[0].split()) > 2:
           sleep_mode(client, L[0].split()[1], L[0].split()[2])
         else:
           sleep_mode(client, L[0].split()[1], "15")
+
       elif "r" in L[0]: # Reload Playlist
         client.clear()
         play_random_playlist(playlistList)
+
       elif "n" in L[0]: # N for next
         client.next()
+
       elif "p" in L[0]: # P for pause/play
         if paused == True:
           client.play()
         else:
           client.pause()
+
       elif "l" in L[0]: # Last album
         prev_album(client)
+
       elif "a" in L[0]: # A for skip to next album
         skip_album(client)
+
       elif "b" in L[0]: # B for back
         if int(client.status()["song"]) != 0:
           client.previous()
@@ -134,6 +145,18 @@ def wait_for_input(L, client, playlistList):
     while L != []: # Empty L so that new commands can be given
       L.remove(L[0])
     clientLock.release()
+
+def play_specific_playlist(playlistList, playlistName):
+  print("Playing playlist " + playlistName)
+  client.clear()
+  if playlistName[1] == "@": # @ indicates an album collection
+    client.load(playlistName)
+    randomise_by_album(client) # Shuffle but keep albums together
+  else:
+    client.load(playlistName) # Load a random playlist, plays in order
+  client.play(0)
+  return playlistName
+    
 
 def play_random_playlist(playlistList):
   playlistNum = random.randint(0, len(playlistList) - 1)
@@ -164,8 +187,8 @@ if __name__ == '__main__':
   client.connect("localhost", 6600) # Connect to mopidy
 
   unfilteredPlaylists = client.listplaylists()
-  # Only get playlists with second character "@" (yes this is fucked)
-  playlistList = list(filter(lambda plDict: plDict["playlist"][1] == "@", unfilteredPlaylists))
+  # Only get playlists beginning with "$"
+  playlistList = list(filter(lambda plDict: plDict["playlist"][0] == "$", unfilteredPlaylists))
 
   clientLock = Lock()
 
