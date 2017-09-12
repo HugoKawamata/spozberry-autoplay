@@ -71,25 +71,30 @@ def prev_album(client):
           break
       client.play(i+1)
 
-def sleep_mode(client, stringOfHours):
-  try: 
-    sleepHours = float(stringOfHours)
-    # Playing 15 minutes of music to aid sleep
-    rockabyeTime = datetime.datetime.now() + datetime.timedelta(minutes=15)
-    print("entering rockabye mode for 15 minutes")
-    while (datetime.datetime.now() < rockabyeTime):
-      client.status() # Ping the client to prevent timeouts
-      time.sleep(50) # Default mpd timeout is 60 seconds
-    # Going into sleep mode for reals
-    wakeup = datetime.datetime.now() + datetime.timedelta(hours=sleepHours)
-    print("sleeping for " + str(sleepHours) + " hours")
-    client.pause()
-    while (datetime.datetime.now() < wakeup):
-      client.status();
-      time.sleep(50) # Default mpd timeout is 60 seconds
-    client.play()
+def sleep_mode(client, wakeUpTime, stringOfRockabye):
+  try:
+    wakeup = datetime.datetime.strptime(wakeUpTime, "%H:%M")
   except ValueError:
-    print("not a number of hours")
+    print("Ensure wake up time is in format e.g. 07:00")
+
+  rockabyeTime = datetime.datetime.now() + datetime.timedelta(minutes=int(stringOfRockabye))
+  print("entering rockabye mode for " + stringOfRockabye + " minutes")
+  while (datetime.datetime.now() < rockabyeTime):
+    client.status() # Ping the client to prevent timeouts
+    time.sleep(50) # Default mpd timeout is 60 seconds
+  # Going into sleep mode for reals
+  if wakeup.hour < datetime.datetime.now().hour:
+    alarmday = datetime.date.today() + datetime.timedelta(days=1)
+  else:
+    alarmday = datetime.date.today()
+
+  wakeup = wakeup.replace(year=alarmday.year, month=alarmday.month, day=alarmday.day)
+  print("alarm set for " + str(wakeup))
+  client.pause()
+  while (datetime.datetime.now() < wakeup):
+    client.status();
+    time.sleep(50) # Default mpd timeout is 60 seconds
+  client.play()
 
 def wait_for_input(L, client, playlistList):
   paused = False
@@ -102,7 +107,10 @@ def wait_for_input(L, client, playlistList):
     clientLock.acquire() # "Hold my beer, ConnectionCheckingThread"
     if len(L) > 0:
       if "zzz" in L[0] and len(L[0].split()) > 1: # Sleep mode
-        sleep_mode(client, L[0].split()[1])
+        if len(L[0].split()) > 2:
+          sleep_mode(client, L[0].split()[1], L[0].split()[2])
+        else:
+          sleep_mode(client, L[0].split()[1], "15")
       elif "r" in L[0]: # Reload Playlist
         client.clear()
         play_random_playlist(playlistList)
@@ -179,9 +187,9 @@ if __name__ == '__main__':
     clientLock.acquire()
     if output: # If the phone is connected
       failedTicks = 0
-      print("It's on the network!")
 
       if phoneIsConnected == False: # The phone just connected
+        print("Phone connected")
         phoneIsConnected = True
         play_random_playlist(playlistList)
       else: # The phone was already connected
@@ -192,12 +200,12 @@ if __name__ == '__main__':
 
 
     else: # The phone is not connected
-      print("It's not on the network")
       failedTicks += 1
       status = client.status()
       # If we got more than 7 failed pings, and the music is playing
       # (don't disconnect if paused, someone might want to come back to that spot in the playlist)
       if failedTicks > 7 and phoneIsConnected and "state" in status and status["state"] == "play":
+        print("Phone disconnected")
         client.clear() # Empty playlist
         phoneIsConnected = False # Allow phone to reconnect if it is found again
     clientLock.release()
