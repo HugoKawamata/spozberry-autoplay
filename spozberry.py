@@ -184,7 +184,11 @@ if __name__ == '__main__':
   phoneIsConnected = False
   failedTicks = 0
 
-  MyMAC = "9c:b2:b2:90:ef:1e"
+  if len(sys.argv) >= 2:
+    MyMAC = sys.argv[1]
+  else:
+    MyMAC = "9c:b2:b2:90:ef:1e" # The mac address of hugo kawamata's phone
+    # I get the privilege of not having to type my mac address in!
   phoneMAC = MyMAC
 
   client = MPDClient()
