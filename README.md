@@ -5,6 +5,7 @@ Spozberry is only compatible with Spotify Premium accounts.
 ## Setup
 - Ensure all playlists you want spozberry to play are named with a "$" at the front
 - Ensure all playlists you want spozberry to "shuffle by album" are named with a "@" after the "$". These will likely be album collections.
+- Ensure all playlists you want spozberry to completely shuffle are named with a "%" after the "$".
 - Ensure you have permission to access /dev/bp* files, or add the following to your `sudo visudo` file: `<yourusername> ALL=NOPASSWD: arp-scan`.
 - Install mopidy
 - Install ncmpcpp (optional: allows you to visualise playlists and have finer control over playback)

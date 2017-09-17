@@ -150,13 +150,18 @@ def play_specific_playlist(playlistList, playlistName):
   print("Playing playlist " + playlistName)
   client.clear()
   if playlistName[1] == "@": # @ indicates an album collection
+    client.random(0)
     client.load(playlistName)
     randomise_by_album(client) # Shuffle but keep albums together
+  elif playlistName[1] == "%": # % indicates an album to shuffle
+    client.random(1)
+    client.load(playlistName)
   else:
-    client.load(playlistName) # Load a random playlist, plays in order
+    client.random(0)
+    client.load(playlistName) # Plays in order
   client.play(0)
   return playlistName
-    
+
 
 def play_random_playlist(playlistList):
   playlistNum = random.randint(0, len(playlistList) - 1)
